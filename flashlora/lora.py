@@ -14,25 +14,25 @@ def default(val, d):
 class Lora(nn.Module):
     def __init__(
             self,
+            dim,
+            dim_out,
             r=8,
             alpha=None,
     ):
         super().__init__()
+        self.linear = nn.Linear(dim, dim_out)
         alpha = default(alpha, r)
         self.scale = alpha / r
 
-        self.A = None
-        self.B = None
+
+        self.A = nn.Parameter(torch.randn(dim, r))
+        self.B = nn.Parameter(torch.randn(r, dim_out))
     
     @property
     def weight(self):
         return (self.A @ self.B) * self.scale
     
     def forward(self, x):
-        dim = x.shape[-1]
-        r = int(self.scale)  # Convert r to an integer
-        if self.A is None or self.A.shape[0] != dim:
-            self.A = nn.Parameter(torch.randn(dim, r))
-            self.B = nn.Parameter(torch.randn(r, dim))
         x = self.linear(x) #apply the linear layer
         return x @ self.weight
+    
