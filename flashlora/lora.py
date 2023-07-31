@@ -30,7 +30,7 @@ class Lora(nn.Module):
     
     def forward(self, x):
         dim = x.shape[-1]
-        r = self.scale
+        r = int(self.scale)  # Convert r to an integer
         if self.A is None or self.A.shape[0] != dim:
             self.A = nn.Parameter(torch.randn(dim, r))
             self.B = nn.Parameter(torch.randn(r, dim))
