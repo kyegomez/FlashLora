@@ -251,8 +251,13 @@ class FlashAttention(nn.Module):
 
         # Use Lora modules to modify queries, keys, and values
         q = q + self.lora_q(x)
+        print(f"q shape: {q.shape}")
+
         k = k + self.lora_k(x)
+        print(f" K shape: {k.shape}")
+
         v = v + self.lora_v(x)
+        print(f"V = v.shape: {v.shape}")
 
         q, k, v = map(lambda t: rearrange(t, 'b n (h d) -> b h n d', h=h), (q, k, v))
 
