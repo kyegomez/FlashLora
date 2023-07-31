@@ -3,7 +3,7 @@ import time
 import matplotlib.pyplot as plt
 import pytest
 
-from flashlora import FlashAttention
+from flashlora.attention import FlashAttention
 
 # Setup
 model = FlashAttention(dim=512, heads=8, dim_head=64, lora_dim_out=64, lora_r=8).cuda()
