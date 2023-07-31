@@ -200,7 +200,7 @@ class FlashAttention(nn.Module):
         k_bucket_size = 1024,
         parallel = False,
         mixed_precision = False,
-        lora_dim_out = 64,
+        # lora_dim_out = 64,
         lora_r = 8,
         lora_alpha = None
     ):
@@ -217,9 +217,9 @@ class FlashAttention(nn.Module):
         self.to_out = nn.Linear(inner_dim, dim, bias = False)
 
         # Initialize Lora modules for queries, keys, and values
-        self.lora_q = Lora(dim, lora_dim_out, r=lora_r, alpha=lora_alpha)
-        self.lora_k = Lora(dim, lora_dim_out, r=lora_r, alpha=lora_alpha)
-        self.lora_v = Lora(dim, lora_dim_out, r=lora_r, alpha=lora_alpha)
+        self.lora_q = Lora(r=lora_r, alpha=lora_alpha)
+        self.lora_k = Lora(r=lora_r, alpha=lora_alpha)
+        self.lora_v = Lora(r=lora_r, alpha=lora_alpha)
 
         # memory efficient attention related parameters
         self.q_bucket_size = q_bucket_size
