@@ -6,7 +6,7 @@ import pytest
 from flashlora.attention import FlashAttention
 
 # Setup
-model = FlashAttention(dim=512, heads=8, dim_head=64, lora_dim_out=64, lora_r=8).cuda()
+model = FlashAttention(dim=512, heads=8, dim_head=64, r=8).cuda()
 sequence_lengths = [2**i for i in range(10, 15)]
 
 # Benchmarking
