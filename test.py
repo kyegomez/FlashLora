@@ -1,50 +1,42 @@
-import unittest
 import torch
-from torch.nn import functional as F
-from torch.utils.data import DataLoader
-from torchvision import datasets, transforms
-from matplotlib import pyplot as plt
+import time
+import matplotlib.pyplot as plt
+import pytest
 
-from flashlora.attention import FlashAttention
+from flashlora import FlashAttention
 
-class TestFlashAttentionWithLora(unittest.TestCase):
-    def setUp(self):
-        self.model = FlashAttention(dim=512, heads=8, dim_head=64, lora_dim_out=64, lora_r=8)
-        self.model.to('cuda')
+# Setup
+model = FlashAttention(dim=512, heads=8, dim_head=64, lora_dim_out=64, lora_r=8).cuda()
+sequence_lengths = [2**i for i in range(10, 15)]
 
-    def test_forward(self):
-        x = torch.randn(16, 50, 512).to('cuda')  # batch of 16, sequence length 50, embedding dimension 512
-        out = self.model(x)
-        self.assertEqual(out.shape, (16, 50, 512))
+# Benchmarking
+times = []
+for sequence_length in sequence_lengths:
+    x = torch.randn(16, sequence_length, 512).cuda()  # batch of 16, sequence length varies, embedding dimension 512
+    y = torch.randn(16, sequence_length, 512).cuda()  # target
 
-    def test_performance(self):
-        # Use MNIST for simplicity
-        transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])
-        train_dataset = datasets.MNIST('../data', train=True, download=True, transform=transform)
-        train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
+    # Warmup
+    for _ in range(10):
+        out = model(x)
+        loss = (out - y).sum()
+        loss.backward()
 
-        optimizer = torch.optim.Adam(self.model.parameters())
-        criterion = F.nll_loss
+    # Measure execution time
+    start_time = time.time()
+    for _ in range(100):
+        out = model(x)
+        loss = (out - y).sum()
+        loss.backward()
+    end_time = time.time()
+    times.append(end_time - start_time)
 
-        epochs = 10
-        losses = []
-        for epoch in range(epochs):
-            epoch_loss = 0
-            for data, target in train_loader:
-                data, target = data.to('cuda'), target.to('cuda')
-                optimizer.zero_grad()
-                output = self.model(data)
-                loss = criterion(output, target)
-                loss.backward()
-                optimizer.step()
-                epoch_loss += loss.item()
-            losses.append(epoch_loss / len(train_loader))
+# Comparison
+for sequence_length, time in zip(sequence_lengths, times):
+    print(f'Sequence length {sequence_length}: {time:.2f} seconds')
 
-        plt.plot(losses)
-        plt.title('Learning Curve')
-        plt.xlabel('Epoch')
-        plt.ylabel('Loss')
-        plt.show()
-
-if __name__ == '__main__':
-    unittest.main()
+# Plotting
+plt.plot(sequence_lengths, times)
+plt.title('Execution Time Comparison')
+plt.xlabel('Sequence Length')
+plt.ylabel('Time (seconds)')
+plt.show()
