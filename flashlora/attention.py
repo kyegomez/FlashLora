@@ -24,7 +24,6 @@ def exists(val):
 def default(val, d):
     return val if exists(val) else d
 
-# flash attention forwards and backwards
 
 # flash attention v1 - https://arxiv.org/abs/2205.14135
 # flash attention v2 - https://tridao.me/publications/flash2/flash2.pdf
@@ -223,7 +222,6 @@ class FlashAttention(nn.Module):
         self.lora_v = Lora(dim, lora_dim_out, r=lora_r, alpha=lora_alpha)
 
         # memory efficient attention related parameters
-        # can be overriden on forward
         self.q_bucket_size = q_bucket_size
         self.k_bucket_size = k_bucket_size
 
